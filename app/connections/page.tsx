@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
-import { Github, Mail, Database, Check, Loader2, MessageSquare, Inbox, Sparkles, ArrowRight, Search } from 'lucide-react';
+import { Github, Mail, Database, Check, Loader2, MessageSquare, Inbox, Sparkles, ArrowRight, Search, X } from 'lucide-react';
 import { MasonryGrid } from '@/components/MasonryGrid';
 import { cn } from '@/lib/utils';
 
@@ -26,6 +26,7 @@ export default function ConnectionsPage() {
   const [connections, setConnections] = useState<UserConnections>({});
   const [loading, setLoading] = useState(true);
   const [connectingService, setConnectingService] = useState<string | null>(null);
+  const [disconnectingService, setDisconnectingService] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
@@ -65,14 +66,47 @@ export default function ConnectionsPage() {
     }
   };
 
+  const handleDisconnect = async (service: 'googleDrive' | 'slack' | 'github' | 'gmail' | 'googleChat') => {
+    if (!confirm(`Are you sure you want to disconnect ${services.find(s => s.service === service)?.name}?`)) {
+      return;
+    }
+
+    setDisconnectingService(service);
+
+    try {
+      const response = await fetch('/api/connections/disconnect', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ service }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Refresh connections
+        await fetchConnections();
+        alert(data.message);
+      } else {
+        alert(data.error || 'Failed to disconnect');
+      }
+    } catch (error) {
+      console.error(`Error disconnecting ${service}:`, error);
+      alert('Failed to disconnect service');
+    } finally {
+      setDisconnectingService(null);
+    }
+  };
+
   const handleContinue = () => {
     router.push('/chat');
   };
 
-  const allConnected = connections.googleDrive?.connected &&
-                       connections.slack?.connected &&
-                       connections.github?.connected &&
-                       connections.gmail?.connected &&
+  const anyConnected = connections.googleDrive?.connected ||
+                       connections.slack?.connected ||
+                       connections.github?.connected ||
+                       connections.gmail?.connected ||
                        connections.googleChat?.connected;
 
   const services = [
@@ -220,44 +254,65 @@ export default function ConnectionsPage() {
                 </p>
               </div>
 
-              {/* Action Button */}
-              <button
-                onClick={() => handleConnect(item.service)}
-                disabled={connections[item.service]?.connected || connectingService === item.service}
-                className={cn(
-                  "w-full mt-2 py-3 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2",
-                  connections[item.service]?.connected
-                    ? "bg-secondary text-muted-foreground cursor-default"
-                    : "bg-primary text-primary-foreground hover:opacity-90 hover:shadow-lg"
-                )}
-              >
-                {connectingService === item.service ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Connecting...
-                  </>
-                ) : connections[item.service]?.connected ? (
-                  "Manage"
+              {/* Action Buttons */}
+              <div className="flex gap-2 mt-2">
+                {connections[item.service]?.connected ? (
+                  <button
+                    onClick={() => handleDisconnect(item.service)}
+                    disabled={disconnectingService === item.service}
+                    className={cn(
+                      "flex-1 py-3 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2",
+                      "bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 border border-red-500/20"
+                    )}
+                  >
+                    {disconnectingService === item.service ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Disconnecting...
+                      </>
+                    ) : (
+                      <>
+                        <X className="w-4 h-4" />
+                        Disconnect
+                      </>
+                    )}
+                  </button>
                 ) : (
-                  "Connect"
+                  <button
+                    onClick={() => handleConnect(item.service)}
+                    disabled={connectingService === item.service}
+                    className={cn(
+                      "flex-1 py-3 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2",
+                      "bg-primary text-primary-foreground hover:opacity-90 hover:shadow-lg"
+                    )}
+                  >
+                    {connectingService === item.service ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Connecting...
+                      </>
+                    ) : (
+                      "Connect"
+                    )}
+                  </button>
                 )}
-              </button>
+              </div>
             </div>
           </div>
         ))}
       </MasonryGrid>
 
-      {/* Continue Button */}
+      {/* Continue Button - Shows when at least one service is connected */}
       <div className="fixed bottom-8 left-0 right-0 flex justify-center pointer-events-none">
         <div className="pointer-events-auto">
           <button
             onClick={handleContinue}
-            disabled={!allConnected}
+            disabled={!anyConnected}
             className={cn(
               "px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 shadow-2xl flex items-center gap-3",
-              allConnected
+              anyConnected
                 ? "bg-primary text-primary-foreground hover:scale-105 hover:shadow-primary/25"
-                : "bg-secondary text-muted-foreground opacity-0 translate-y-10"
+                : "bg-secondary text-muted-foreground opacity-50 cursor-not-allowed"
             )}
           >
             <span>Continue to Chat</span>
@@ -265,6 +320,15 @@ export default function ConnectionsPage() {
           </button>
         </div>
       </div>
+
+      {/* Helper text */}
+      {!anyConnected && (
+        <div className="fixed bottom-24 left-0 right-0 flex justify-center pointer-events-none">
+          <p className="text-sm text-muted-foreground bg-background/80 backdrop-blur-sm px-4 py-2 rounded-full border border-border">
+            Connect at least one service to continue
+          </p>
+        </div>
+      )}
     </div>
   );
 }

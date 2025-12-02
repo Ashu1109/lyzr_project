@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useUser } from '@clerk/nextjs';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Send, Loader2, Bot, User as UserIcon, Sparkles, Paperclip, Image as ImageIcon, MoreHorizontal, Plus, MessageSquare, Menu, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -22,6 +23,8 @@ interface ChatSession {
 
 export default function ChatPage() {
   const { user } = useUser();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -37,6 +40,20 @@ export default function ChatPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Load session from URL on mount/refresh
+  useEffect(() => {
+    if (!user?.id) return; // Wait for user to be loaded
+
+    const sessionFromUrl = searchParams.get('session');
+    if (sessionFromUrl && sessionFromUrl !== 'undefined' && sessionFromUrl !== 'null') {
+      // Only load if it's different from current session to avoid infinite loop
+      if (sessionFromUrl !== currentSessionId) {
+        console.log('Loading session from URL:', sessionFromUrl);
+        loadSession(sessionFromUrl, false); // Don't update URL since we're already loading from it
+      }
+    }
+  }, [searchParams, user?.id]);
 
   // Fetch chat history on load
   useEffect(() => {
@@ -58,7 +75,7 @@ export default function ChatPage() {
     }
   };
 
-  const loadSession = async (sessionId: string) => {
+  const loadSession = async (sessionId: string, updateUrl: boolean = true) => {
     if (!sessionId || sessionId === 'undefined') {
       console.error('Invalid session ID:', sessionId);
       return;
@@ -66,6 +83,10 @@ export default function ChatPage() {
     try {
       setIsLoading(true);
       setCurrentSessionId(sessionId);
+      // Update URL with session ID only if not already loading from URL
+      if (updateUrl) {
+        router.push(`/chat?session=${sessionId}`, { scroll: false });
+      }
       const res = await fetch(`/api/history/${sessionId}`);
       if (res.ok) {
         const data = await res.json();
@@ -88,6 +109,8 @@ export default function ChatPage() {
     setMessages([]);
     setCurrentSessionId(null);
     setIsSidebarOpen(false);
+    // Clear URL parameter for new chat
+    router.push('/chat', { scroll: false });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -106,15 +129,17 @@ export default function ChatPage() {
     setInput('');
     setIsLoading(true);
 
+    console.log('Sending message with session_id:', currentSessionId);
+
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           message: input,
-          session_id: currentSessionId 
+          session_id: currentSessionId
         }),
       });
 
@@ -164,7 +189,10 @@ export default function ChatPage() {
                 });
               }
               if (parsed.session_id && parsed.session_id !== 'undefined') {
+                console.log('Received session_id from backend:', parsed.session_id);
                 setCurrentSessionId(parsed.session_id);
+                // Update URL with new session ID
+                router.push(`/chat?session=${parsed.session_id}`, { scroll: false });
               }
             } catch (e) {
               // Ignore parse errors for partial chunks
