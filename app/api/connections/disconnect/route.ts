@@ -5,7 +5,7 @@ import User from '@/lib/models/User';
 import Social from '@/lib/models/Social';
 import GoogleDrive from '@/lib/models/GoogleDrive';
 import Slack from '@/lib/models/Slack';
-import Github from '@/lib/models/Github';
+import GitHub from '@/lib/models/GitHub';
 import Gmail from '@/lib/models/Gmail';
 import GoogleChat from '@/lib/models/GoogleChat';
 
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     const serviceMap: Record<string, { model: any; field: string; serviceName: string }> = {
       googleDrive: { model: GoogleDrive, field: 'googleDriveId', serviceName: 'Google Drive' },
       slack: { model: Slack, field: 'slackId', serviceName: 'Slack' },
-      github: { model: Github, field: 'githubId', serviceName: 'GitHub' },
+      github: { model: GitHub, field: 'githubId', serviceName: 'GitHub' },
       gmail: { model: Gmail, field: 'gmailId', serviceName: 'Gmail' },
       googleChat: { model: GoogleChat, field: 'googleChatId', serviceName: 'Google Chat' },
     };
