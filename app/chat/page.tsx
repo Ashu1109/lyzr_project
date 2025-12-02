@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Send, Loader2, Bot, User as UserIcon, Sparkles, Paperclip, Image as ImageIcon, MoreHorizontal, Plus, MessageSquare, Menu, X } from 'lucide-react';
@@ -21,7 +21,7 @@ interface ChatSession {
   updatedAt: string;
 }
 
-export default function ChatPage() {
+function ChatPageContent() {
   const { user } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -442,5 +442,17 @@ export default function ChatPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-10 h-10 text-primary animate-spin" />
+      </div>
+    }>
+      <ChatPageContent />
+    </Suspense>
   );
 }
