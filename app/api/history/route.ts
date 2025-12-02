@@ -9,7 +9,8 @@ export async function GET(req: NextRequest) {
     }
 
     // Build backend URL with user_id
-    const backendUrl = `http://localhost:8000/api/history?user_id=${userId}`;
+    const backendBaseUrl = "http://13.234.48.54:8000";
+    const backendUrl = `${backendBaseUrl}/api/history?user_id=${userId}`;
 
     const response = await fetch(backendUrl);
 

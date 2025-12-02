@@ -18,7 +18,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     console.log('Fetching session:', sessionId);
 
-    const backendUrl = `http://localhost:8000/api/history/${sessionId}`;
+    const backendBaseUrl = "http://13.234.48.54:8000";
+    const backendUrl = `${backendBaseUrl}/api/history/${sessionId}`;
 
     const response = await fetch(backendUrl);
 

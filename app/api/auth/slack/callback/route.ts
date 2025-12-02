@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const clientId = process.env.SLACK_CLIENT_ID;
     const clientSecret = process.env.SLACK_CLIENT_SECRET;
     const baseUrl = (process.env.NEXT_PUBLIC_APP_URL?.includes('localhost') || !process.env.NEXT_PUBLIC_APP_URL)
-      ? 'https://seagull-amusing-optionally.ngrok-free.app'
+      ? 'https://lyzrproject-two.vercel.app'
       : process.env.NEXT_PUBLIC_APP_URL;
     const redirectUri = `${baseUrl}/api/auth/slack/callback`;
 
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error in Slack callback:', error);
     const baseUrl = (process.env.NEXT_PUBLIC_APP_URL?.includes('localhost') || !process.env.NEXT_PUBLIC_APP_URL)
-      ? 'https://seagull-amusing-optionally.ngrok-free.app'
+      ? 'https://lyzrproject-two.vercel.app'
       : process.env.NEXT_PUBLIC_APP_URL;
     return NextResponse.redirect(`${baseUrl}/connections?error=auth_failed`);
   }

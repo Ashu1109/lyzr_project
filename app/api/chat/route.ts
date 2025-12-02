@@ -11,7 +11,8 @@ export async function POST(req: NextRequest) {
     const { message, session_id } = await req.json();
 
     // Proxy to Python Backend with Streaming
-    const response = await fetch('http://localhost:8000/api/chat', {
+    const backendUrl = "http://13.234.48.54:8000";
+    const response = await fetch(`${backendUrl}/api/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -11,7 +11,7 @@ export async function GET() {
 
     const clientId = process.env.SLACK_CLIENT_ID;
     const baseUrl = (process.env.NEXT_PUBLIC_APP_URL?.includes('localhost') || !process.env.NEXT_PUBLIC_APP_URL)
-      ? 'https://seagull-amusing-optionally.ngrok-free.app'
+      ? 'https://lyzrproject-two.vercel.app'
       : process.env.NEXT_PUBLIC_APP_URL;
     const redirectUri = `${baseUrl}/api/auth/slack/callback`;
 
