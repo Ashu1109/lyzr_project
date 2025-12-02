@@ -29,9 +29,23 @@ export default async function ConnectionsPage() {
 
   await connectDB();
 
-  const user = await User.findOne({ clerkUserId: userId });
+  const user = await User.findOne({ clerkId: userId });
 
   if (!user) {
+    // User doesn't exist in database yet, create them
+    const { user: clerkUser } = await auth();
+    if (clerkUser) {
+      const newUser = await User.create({
+        clerkId: userId,
+        email: clerkUser.emailAddresses?.[0]?.emailAddress || '',
+        firstName: clerkUser.firstName || '',
+        lastName: clerkUser.lastName || '',
+        username: clerkUser.username || '',
+        photo: clerkUser.imageUrl || '',
+      });
+      const connections = await getUserConnections(newUser._id);
+      return <ClientConnectionsPage initialConnections={connections} />;
+    }
     redirect('/sign-in');
   }
 
