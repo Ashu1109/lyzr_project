@@ -3,9 +3,17 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
-import { Github, Mail, Database, Check, Loader2, MessageSquare, Inbox, Sparkles, ArrowRight, Search, X } from 'lucide-react';
+import { Github, Mail, Database, Check, Loader2, MessageSquare, Inbox, Sparkles, ArrowRight, Search, X, AlertTriangle } from 'lucide-react';
 import { MasonryGrid } from '@/components/MasonryGrid';
 import { cn } from '@/lib/utils';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface Connection {
   connected: boolean;
@@ -29,6 +37,9 @@ export default function ConnectionsPage() {
   const [disconnectingService, setDisconnectingService] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [disconnectDialogOpen, setDisconnectDialogOpen] = useState(false);
+  const [serviceToDisconnect, setServiceToDisconnect] = useState<{ service: 'googleDrive' | 'slack' | 'github' | 'gmail' | 'googleChat'; name: string } | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (isLoaded && user) {
@@ -66,12 +77,18 @@ export default function ConnectionsPage() {
     }
   };
 
-  const handleDisconnect = async (service: 'googleDrive' | 'slack' | 'github' | 'gmail' | 'googleChat') => {
-    if (!confirm(`Are you sure you want to disconnect ${services.find(s => s.service === service)?.name}?`)) {
-      return;
-    }
+  const openDisconnectDialog = (service: 'googleDrive' | 'slack' | 'github' | 'gmail' | 'googleChat') => {
+    const serviceName = services.find(s => s.service === service)?.name || service;
+    setServiceToDisconnect({ service, name: serviceName });
+    setDisconnectDialogOpen(true);
+  };
 
+  const confirmDisconnect = async () => {
+    if (!serviceToDisconnect) return;
+
+    const { service } = serviceToDisconnect;
     setDisconnectingService(service);
+    setDisconnectDialogOpen(false);
 
     try {
       const response = await fetch('/api/connections/disconnect', {
@@ -87,15 +104,19 @@ export default function ConnectionsPage() {
       if (response.ok) {
         // Refresh connections
         await fetchConnections();
-        alert(data.message);
+        setSuccessMessage(data.message);
+        setTimeout(() => setSuccessMessage(null), 3000);
       } else {
-        alert(data.error || 'Failed to disconnect');
+        setSuccessMessage(data.error || 'Failed to disconnect');
+        setTimeout(() => setSuccessMessage(null), 3000);
       }
     } catch (error) {
       console.error(`Error disconnecting ${service}:`, error);
-      alert('Failed to disconnect service');
+      setSuccessMessage('Failed to disconnect service');
+      setTimeout(() => setSuccessMessage(null), 3000);
     } finally {
       setDisconnectingService(null);
+      setServiceToDisconnect(null);
     }
   };
 
@@ -258,7 +279,7 @@ export default function ConnectionsPage() {
               <div className="flex gap-2 mt-2">
                 {connections[item.service]?.connected ? (
                   <button
-                    onClick={() => handleDisconnect(item.service)}
+                    onClick={() => openDisconnectDialog(item.service)}
                     disabled={disconnectingService === item.service}
                     className={cn(
                       "flex-1 py-3 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2",
@@ -327,6 +348,47 @@ export default function ConnectionsPage() {
           <p className="text-sm text-muted-foreground bg-background/80 backdrop-blur-sm px-4 py-2 rounded-full border border-border">
             Connect at least one service to continue
           </p>
+        </div>
+      )}
+
+      {/* Disconnect Confirmation Dialog */}
+      <Dialog open={disconnectDialogOpen} onOpenChange={setDisconnectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+              </div>
+              <DialogTitle>Disconnect {serviceToDisconnect?.name}?</DialogTitle>
+            </div>
+            <DialogDescription className="pt-3">
+              Are you sure you want to disconnect {serviceToDisconnect?.name}? You will lose access to data from this service until you reconnect it.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <button
+              onClick={() => setDisconnectDialogOpen(false)}
+              className="px-4 py-2 rounded-lg font-medium text-sm bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmDisconnect}
+              className="px-4 py-2 rounded-lg font-medium text-sm bg-red-600 text-white hover:bg-red-700 transition-colors"
+            >
+              Disconnect
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Message Toast */}
+      {successMessage && (
+        <div className="fixed top-4 right-4 z-[100] animate-in slide-in-from-top-2 fade-in duration-300">
+          <div className="bg-background border border-border rounded-lg shadow-lg p-4 max-w-md flex items-center gap-3">
+            <Check className="w-5 h-5 text-green-600 dark:text-green-400 shrink-0" />
+            <p className="text-sm font-medium">{successMessage}</p>
+          </div>
         </div>
       )}
     </div>
