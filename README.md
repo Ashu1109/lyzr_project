@@ -1,7 +1,3 @@
-
-https://github.com/user-attachments/assets/0dffd36e-c35f-4166-be09-e60297331364
-
-
 # Lyzr Agent - Unified Workspace Search & Chat
 
 Lyzr Agent is a powerful AI-driven application designed to unify your workspace. It connects with your favorite tools—Google Drive, Slack, GitHub, and Gmail—to provide a single interface for searching, analyzing, and chatting with your data.
