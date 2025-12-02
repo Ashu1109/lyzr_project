@@ -1,7 +1,7 @@
 import { Github, Mail, Database, Check, Inbox, ArrowRight, Search } from 'lucide-react';
 import { MasonryGrid } from '@/components/MasonryGrid';
 import { cn } from '@/lib/utils';
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import User from '@/lib/models/User';
 import { getUserConnections } from '@/lib/helpers/socialHelpers';
@@ -29,13 +29,13 @@ export default async function ConnectionsPage() {
 
   await connectDB();
 
-  const user = await User.findOne({ clerkId: userId });
+  let user = await User.findOne({ clerkId: userId });
 
   if (!user) {
     // User doesn't exist in database yet, create them
-    const { user: clerkUser } = await auth();
+    const clerkUser = await currentUser();
     if (clerkUser) {
-      const newUser = await User.create({
+      user = await User.create({
         clerkId: userId,
         email: clerkUser.emailAddresses?.[0]?.emailAddress || '',
         firstName: clerkUser.firstName || '',
@@ -43,10 +43,9 @@ export default async function ConnectionsPage() {
         username: clerkUser.username || '',
         photo: clerkUser.imageUrl || '',
       });
-      const connections = await getUserConnections(newUser._id);
-      return <ClientConnectionsPage initialConnections={connections} />;
+    } else {
+      redirect('/sign-in');
     }
-    redirect('/sign-in');
   }
 
   const connections = await getUserConnections(user._id);
