@@ -7,7 +7,6 @@ import GoogleDrive from '@/lib/models/GoogleDrive';
 import Slack from '@/lib/models/Slack';
 import GitHub from '@/lib/models/GitHub';
 import Gmail from '@/lib/models/Gmail';
-import GoogleChat from '@/lib/models/GoogleChat';
 
 export async function POST(req: NextRequest) {
   try {
@@ -44,7 +43,6 @@ export async function POST(req: NextRequest) {
       slack: { model: Slack, field: 'slackId', serviceName: 'Slack' },
       github: { model: GitHub, field: 'githubId', serviceName: 'GitHub' },
       gmail: { model: Gmail, field: 'gmailId', serviceName: 'Gmail' },
-      googleChat: { model: GoogleChat, field: 'googleChatId', serviceName: 'Google Chat' },
     };
 
     const serviceInfo = serviceMap[service];

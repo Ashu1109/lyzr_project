@@ -5,7 +5,6 @@ import GoogleDrive from '@/lib/models/GoogleDrive';
 import Slack from '@/lib/models/Slack';
 import GitHub from '@/lib/models/GitHub';
 import Gmail from '@/lib/models/Gmail';
-import GoogleChat from '@/lib/models/GoogleChat';
 
 /**
  * Get or create a Social document for a user
@@ -31,8 +30,7 @@ export async function getUserConnections(userId: mongoose.Types.ObjectId) {
     .populate('googleDriveId', 'connected connectedAt email')
     .populate('slackId', 'connected connectedAt teamName')
     .populate('githubId', 'connected connectedAt username')
-    .populate('gmailId', 'connected connectedAt email')
-    .populate('googleChatId', 'connected connectedAt email');
+    .populate('gmailId', 'connected connectedAt email');
 
 
   return {
@@ -62,13 +60,6 @@ export async function getUserConnections(userId: mongoose.Types.ObjectId) {
           connected: (social.gmailId as any).connected,
           connectedAt: (social.gmailId as any).connectedAt,
           email: (social.gmailId as any).email,
-        }
-      : { connected: false },
-    googleChat: social?.googleChatId
-      ? {
-          connected: (social.googleChatId as any).connected,
-          connectedAt: (social.googleChatId as any).connectedAt,
-          email: (social.googleChatId as any).email,
         }
       : { connected: false },
   };
@@ -270,54 +261,6 @@ export async function connectGmail(
   return gmail;
 }
 
-/**
- * Connect Google Chat for a user
- */
-export async function connectGoogleChat(
-  userId: mongoose.Types.ObjectId,
-  data: {
-    email: string;
-    accessToken: string;
-    refreshToken?: string;
-    expiresAt?: Date;
-    scope: string[];
-  }
-) {
-  // Check if already exists
-  let googleChat = await GoogleChat.findOne({ userId });
-
-  if (googleChat) {
-    // Update existing
-    googleChat.email = data.email;
-    googleChat.accessToken = data.accessToken;
-    googleChat.refreshToken = data.refreshToken;
-    googleChat.expiresAt = data.expiresAt;
-    googleChat.scope = data.scope;
-    googleChat.connected = true;
-    googleChat.connectedAt = new Date();
-    await googleChat.save();
-  } else {
-    // Create new
-    googleChat = await GoogleChat.create({
-      userId,
-      ...data,
-      connected: true,
-      connectedAt: new Date(),
-    });
-  }
-
-  // Update social
-  const social = await getOrCreateSocial(userId);
-  social.googleChatId = googleChat._id as mongoose.Types.ObjectId;
-
-  if (!social.connectedServices.includes('googleChat')) {
-    social.connectedServices.push('googleChat');
-  }
-
-  await social.save();
-
-  return googleChat;
-}
 
 /**
  * Get user's tokens for a specific service
@@ -331,11 +274,10 @@ export async function getUserTokens(userId: mongoose.Types.ObjectId) {
       slack: null,
       github: null,
       gmail: null,
-      googleChat: null,
     };
   }
 
-  const [googleDrive, slack, github, gmail, googleChat] = await Promise.all([
+  const [googleDrive, slack, github, gmail] = await Promise.all([
     social.googleDriveId
       ? GoogleDrive.findById(social.googleDriveId).select('+accessToken +refreshToken')
       : null,
@@ -347,9 +289,6 @@ export async function getUserTokens(userId: mongoose.Types.ObjectId) {
       : null,
     social.gmailId
       ? Gmail.findById(social.gmailId).select('+accessToken +refreshToken')
-      : null,
-    social.googleChatId
-      ? GoogleChat.findById(social.googleChatId).select('+accessToken +refreshToken')
       : null,
   ]);
 
@@ -378,13 +317,6 @@ export async function getUserTokens(userId: mongoose.Types.ObjectId) {
           expiresAt: gmail.expiresAt,
         }
       : null,
-    googleChat: googleChat
-      ? {
-          accessToken: googleChat.accessToken,
-          refreshToken: googleChat.refreshToken,
-          expiresAt: googleChat.expiresAt,
-        }
-      : null,
   };
 }
 
@@ -393,7 +325,7 @@ export async function getUserTokens(userId: mongoose.Types.ObjectId) {
  */
 export async function disconnectService(
   userId: mongoose.Types.ObjectId,
-  service: 'googleDrive' | 'slack' | 'github' | 'gmail' | 'googleChat'
+  service: 'googleDrive' | 'slack' | 'github' | 'gmail'
 ) {
   const social = await Social.findOne({ userId });
 
@@ -417,10 +349,6 @@ export async function disconnectService(
     await Gmail.findByIdAndDelete(social.gmailId);
     social.gmailId = undefined;
     social.connectedServices = social.connectedServices.filter((s) => s !== 'gmail');
-  } else if (service === 'googleChat' && social.googleChatId) {
-    await GoogleChat.findByIdAndDelete(social.googleChatId);
-    social.googleChatId = undefined;
-    social.connectedServices = social.connectedServices.filter((s) => s !== 'googleChat');
   }
 
   await social.save();
