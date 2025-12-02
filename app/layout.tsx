@@ -39,13 +39,13 @@ export default function RootLayout({
               <div className="flex justify-between items-center gap-4">
                 {/* Logo Area */}
                 <div className="flex items-center gap-2 shrink-0">
-                  <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-sm hover:scale-105 transition-transform cursor-pointer">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.65 0-5.789 2.738-5.789 5.57 0 1.103.425 2.286.956 2.929.105.128.12.24.089.372-.098.403-.319 1.287-.363 1.466-.057.232-.185.281-.426.169-1.587-.741-2.576-3.057-2.576-4.922 0-4.007 2.908-7.684 8.388-7.684 4.405 0 7.828 3.14 7.828 7.334 0 4.376-2.759 7.896-6.591 7.896-1.288 0-2.498-.669-2.913-1.458 0 0-.698 2.656-.868 3.309-.314 1.208-1.164 2.722-1.734 3.633 1.303.385 2.686.595 4.114.595 6.627 0 12-5.373 12-12S18.627 0 12 0z" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-lg flex items-center justify-center shadow-sm hover:scale-105 transition-transform cursor-pointer">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   </div>
                   <span className="hidden md:block text-lg font-bold tracking-tight text-foreground">
-                    Lyzr
+                    Workspace
                   </span>
                 </div>
 
