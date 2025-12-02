@@ -1,7 +1,7 @@
 
 https://github.com/user-attachments/assets/0dffd36e-c35f-4166-be09-e60297331364
 
-https://github.com/user-attachments/assets/7fa8d09d-74f2-4d25-ab71-1f85e90f446d
+
 # Lyzr Agent - Unified Workspace Search & Chat
 
 Lyzr Agent is a powerful AI-driven application designed to unify your workspace. It connects with your favorite tools—Google Drive, Slack, GitHub, and Gmail—to provide a single interface for searching, analyzing, and chatting with your data.
@@ -93,18 +93,7 @@ The frontend will be available at `http://localhost:3000`.
 
 https://github.com/user-attachments/assets/c37f5322-214a-4c47-8ae5-47fda96e4582
 
-
-
-
-Uploading Screen Recording 2025-12-03 at 2.18.51 AM.mov…
-
-
-
-
-
-
-
-
+[Uploading Screen Recording 2025-12-03 at 2.18.51 AM.mov…](https://github.com/user-attachments/assets/7fa8d09d-74f2-4d25-ab71-1f85e90f446d)
 
 ### Screenshots
 <img width="2816" height="1536" alt="Gemini_Generated_Image_2n7gmq2n7gmq2n7g" src="https://github.com/user-attachments/assets/72bf838c-ac1b-44db-bfc3-b353f15429da" />
