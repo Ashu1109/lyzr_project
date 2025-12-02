@@ -5,7 +5,7 @@ import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import User from '@/lib/models/User';
 import { getUserConnections } from '@/lib/helpers/socialHelpers';
-import { connectToDatabase } from '@/lib/db';
+import connectDB from '@/lib/mongodb';
 import { ClientConnectionsPage } from './ClientConnectionsPage';
 
 interface Connection {
@@ -27,7 +27,7 @@ export default async function ConnectionsPage() {
     redirect('/sign-in');
   }
 
-  await connectToDatabase();
+  await connectDB();
 
   const user = await User.findOne({ clerkUserId: userId });
 
